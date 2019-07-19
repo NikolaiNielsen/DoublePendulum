@@ -196,25 +196,24 @@ class Animator(object):
         self.ax.axis('equal')
         self.ax.set_xlim(*self.lims)
         self.ax.set_ylim(*self.lims)
-        self.plot, = ax.plot([], [], marker='o', markerfacecolor='r', c='k')
-        self.artists = [self.plot]
+        self.plot, = ax.plot([], [], marker='o', markerfacecolor='r', c='k',
+                             linewidth=4, markersize=15)
         naught = np.zeros(x1.size)
         self.xdata = np.array((naught, x1, x2)).T
         self.ydata = np.array((naught, y1, y2)).T
         self.time = T
+        self.time_text = self.ax.text(-0.9, 0.9, 'Time: 0')
+        self.artists = [self.plot, self.time_text]
 
     def _init(self):
         # function to clear the line every time it is plotted (init function
         # for FuncAnim)
-        for artist in self.artists:
-            artist.set_data([], [])
+        self.plot.set_data([], [])
         return self.artists
 
     def __call__(self, i):
-        self.ax.set_title(self.time[i])
-        for n in range(len(self.artists)):
-            self.artists[n].set_data(self.xdata[i],
-                                     self.ydata[i])
+        self.time_text.set_text(f'Time: {self.time[i]:.2f}')
+        self.plot.set_data(self.xdata[i], self.ydata[i])
         return self.artists
 
 
