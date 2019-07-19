@@ -249,4 +249,4 @@ def _on_mouse(event, r1, r2, ax, fig, N, dt, m1, m2, g):
                                   repeat=False)
     fig.canvas.draw()
 
-animation_window(r1, r2)
+# animation_window(r1, r2)
