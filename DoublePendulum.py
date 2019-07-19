@@ -8,13 +8,10 @@ r2 = 1-r1
 
 m1 = 1
 m2 = 1
-g = 10
+g = -10
 
 N = 10000
 dt = 0.01
-
-theta1 = np.pi / 2
-theta2 = np.pi / 2
 
 
 def gen_to_cart(theta1, theta2, r1, r2):
@@ -35,10 +32,10 @@ def gen_to_cart(theta1, theta2, r1, r2):
     """
 
     x1 = r1 * np.sin(theta1)
-    y1 = -r1 * np.cos(theta1)
+    y1 = r1 * np.cos(theta1)
 
     x2 = x1 + r2 * np.sin(theta2)
-    y2 = y1 - r2 * np.cos(theta2)
+    y2 = y1 + r2 * np.cos(theta2)
 
     return x1, y1, x2, y2
 
@@ -173,7 +170,7 @@ def plot_circle(x0, y0, r, ax):
     ax.plot(x, y)
 
 
-def animation_window(r1=0.5, r2=0.5):
+def animation_window(r1=r1, r2=r2, m1=m1, m2=m2, g=g, N=N, dt=dt):
 
     fig, ax = plt.subplots(figsize=(8, 8))
     ax.set_xlim(-1, 1)
@@ -222,8 +219,8 @@ class Animator(object):
 
 
 def cart_to_gen(x1, y1, x2, y2, r1, r2):
-    theta1 = np.arctan2(y1, x1) + 0.5*np.pi
-    theta2 = np.arctan2(y2-y2, x2-x1) + 0.5*np.pi
+    theta1 = np.arctan2(x1, y1)
+    theta2 = np.arctan2(x2-x1, y2-y1)
     return theta1, theta2
 
 
@@ -242,6 +239,7 @@ def _on_mouse(event, r1, r2, ax, fig, N, dt, m1, m2, g):
     theta1, theta2 = cart_to_gen(x1, y1, x2, y2, r1, r2)
 
     x1, y1, x2, y2, T = simulate(theta1, theta2, N, dt, r1, r2, m1, m2, g)
+
     A = Animator(fig, ax, x1, y1, x2, y2, T)
 
     ani = animation.FuncAnimation(fig, A, frames=N,
