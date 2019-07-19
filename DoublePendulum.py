@@ -70,6 +70,10 @@ def calc_omega2(f, theta1, theta2, r1, r2, m1, m2, g):
 
 
 def calc_derivs(state, r1, r2, m1, m2, g):
+    """
+    Calculate the derivatives of theta1, omega1, theta2 and omega2.
+    Ripped from http://scienceworld.wolfram.com/physics/DoublePendulum.html.
+    """
 
     dydx = np.zeros_like(state)
     dydx[0] = state[1]
@@ -95,7 +99,7 @@ def calc_derivs(state, r1, r2, m1, m2, g):
 def RK4(state, dt, coeffs):
     """
     Calculates the values of the generalised coordinates at the next time step,
-    using the 
+    using the 4th order Runge-Kutta method.
     """
 
     k1 = dt * calc_derivs(state, *coeffs)
@@ -108,11 +112,11 @@ def RK4(state, dt, coeffs):
 
 
 def simulate(theta1, theta2, N, dt, r1, r2, m1, m2, g):
-    state = np.zeros((N,4))
+    state = np.zeros((N, 4))
     state[0] = [theta1, 0, theta2, 0]
     coeffs = (r1, r2, m1, m2, g)
     for i in range(1, N):
-        state[i] = calc_next_time_semi_implicit(state[i-1], dt, coeffs)
+        state[i] = RK4(state[i-1], dt, coeffs)
 
     dt_arr = np.ones(N) * dt
     T = np.cumsum(dt_arr) - dt
@@ -130,7 +134,7 @@ def calc_starting_on_mouse(x1, y1, r1, r2):
     From
     https://stackoverflow.com/questions/3349125/circle-circle-intersection-points
     """
-    
+
     x0 = 0
     y0 = 0
     d = np.sqrt(x1**2 + y1**2)
@@ -182,7 +186,6 @@ def animation_window(r1=0.5, r2=0.5):
                                                          dt=dt, m1=m1, m2=m2,
                                                          g=g))
 
-
     plt.show()
 
 
@@ -190,7 +193,7 @@ class Animator(object):
     # The animator object, created for every simulation we want to plot
     def __init__(self, fig, ax, x1, y1, x2, y2, T):
         # plug stuff into the object and create the empty line
-        self.lims = (-1, 1) 
+        self.lims = (-1, 1)
         self.ax = ax
         self.fig = fig
         self.ax.axis('equal')
@@ -203,7 +206,6 @@ class Animator(object):
         self.ydata = np.array((naught, y1, y2)).T
         self.time = T
 
-    
     def _init(self):
         # function to clear the line every time it is plotted (init function
         # for FuncAnim)
@@ -228,14 +230,14 @@ def cart_to_gen(x1, y1, x2, y2, r1, r2):
 def _on_mouse(event, r1, r2, ax, fig, N, dt, m1, m2, g):
     if event.button != 1:
         return
-    
+
     x0 = event.xdata
     y0 = event.ydata
 
     if x0 is None or y0 is None:
         # Mouse is out of bounds
         return
-    
+
     x1, y1, x2, y2 = calc_starting_on_mouse(x0, y0, r1, r2)
     theta1, theta2 = cart_to_gen(x1, y1, x2, y2, r1, r2)
 
@@ -249,7 +251,5 @@ def _on_mouse(event, r1, r2, ax, fig, N, dt, m1, m2, g):
                                   interval=dt*1000,
                                   repeat=False)
     fig.canvas.draw()
-
-
 
 animation_window(r1, r2)
