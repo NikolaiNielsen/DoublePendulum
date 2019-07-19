@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import gui
 
 r = 1
 r1 = 0.5
@@ -260,4 +261,6 @@ def _on_mouse(event, r1, r2, ax, fig, N, dt, m1, m2, g):
                                   repeat=False)
     fig.canvas.draw()
 
-# animation_window(r1, r2)
+
+if __name__ == '__main__':
+    gui.main()
