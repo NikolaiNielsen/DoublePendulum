@@ -52,15 +52,16 @@ class double_pendulum_window(QW.QMainWindow):
     def __init__(self):
         super().__init__()
         self._main = QW.QWidget()
+        self.setWindowTitle('Double Pendulum Simulation')
         self.setCentralWidget(self._main)
         self.layout_main = QW.QHBoxLayout(self._main)
         # A shortcut to close the app.
         self.closer = QW.QShortcut(QG.QKeySequence('Ctrl+Q'), self, self.quit)
         self.create_options()
-        self.layout_main.addLayout(self.layout_options)
+        self.create_plot_window()
 
     def create_options(self):
-        self.parameter_names = ['r2', 'm1', 'm2', 'g', 'k1', 'k2']
+        self.parameter_names = ['r1', 'm1', 'm2', 'g', 'k1', 'k2']
         self.param_min = [0.05, 0.1, 0.1, 1, 0, 0]
         self.param_max = [0.95, 10, 10, 100, 0, 0]
         self.param_values = [0.5, 1, 1, 10, 0, 0]
@@ -79,12 +80,12 @@ class double_pendulum_window(QW.QMainWindow):
                                                      self.param_values,
                                                      self.param_intervals):
             label = QW.QLabel(name, self)
-            self.param_labels.append(label)
             field = DoubleSlider(3, QC.Qt.Horizontal)
             field.setMinimum(min_)
             field.setMaximum(max_)
             field.setValue(value)
             field.setSingleStep(interval)
+            self.param_labels.append(label)
             self.param_fields.append(field)
 
         for n in range(len(self.param_fields)):
@@ -92,6 +93,26 @@ class double_pendulum_window(QW.QMainWindow):
                                           self.param_fields[n])
         self.layout_options.addWidget(self.button_restart)
         self.layout_options.addLayout(self.layout_parameters)
+        self.layout_main.addLayout(self.layout_options)
+
+    def create_plot_window(self):
+        r1, m1, m2, g, k1, k2 = self.param_values
+        r2 = 1-r1
+        N = 10000
+        dt = 0.01
+        g = -g if g > 0 else g
+        self.fig, self.ax = dp.animation_window(r1, r2, m1, m2, g, N, dt)
+        self.canvas = FigureCanvas(self.fig)
+
+        cid = self.canvas.mpl_connect('button_press_event',
+                                      lambda event: dp._on_mouse(
+                                          event, r1=r1,
+                                          r2=r2, ax=self.ax,
+                                          fig=self.fig, N=N,
+                                          dt=dt, m1=m1, m2=m2,
+                                          g=g))
+        self.addToolBar(NavigationToolbar(self.canvas, self))
+        self.layout_main.addWidget(self.canvas)
 
     def quit(self):
         sys.exit()
