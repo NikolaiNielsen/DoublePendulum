@@ -170,20 +170,32 @@ def plot_circle(x0, y0, r, ax):
     ax.plot(x, y)
 
 
-def animation_window(r1=r1, r2=r2, m1=m1, m2=m2, g=g, N=N, dt=dt):
+def animation_window(r1=r1, r2=r2, m1=m1, m2=m2, g=g, N=N, dt=dt, obj=None):
 
-    fig, ax = plt.subplots(figsize=(8, 8))
+    fig = plt.figure(figsize=(6, 6))
+    ax = fig.gca()
     ax.set_xlim(-1, 1)
     ax.set_ylim(-1, 1)
 
-    cid = fig.canvas.mpl_connect('button_press_event',
-                                 lambda event: _on_mouse(event, r1=r1,
-                                                         r2=r2, ax=ax,
-                                                         fig=fig, N=N,
-                                                         dt=dt, m1=m1, m2=m2,
-                                                         g=g))
+    # g = -g if g > 0 else g
+    # if obj is not None:
+    #     obj.canvas.mpl_connect('button_press_event',
+    #                            lambda event: _on_mouse(
+    #                                event, r1=r1,
+    #                                r2=r2, ax=obj.ax,
+    #                                fig=obj.fig, N=N,
+    #                                dt=dt, m1=m1, m2=m2,
+    #                                g=g))
+    # else:
+    #     fig.canvas.mpl_connect('button_press_event',
+    #                            lambda event: _on_mouse(
+    #                                event, r1=r1,
+    #                                r2=r2, ax=ax,
+    #                                fig=fig, N=N,
+    #                                dt=dt, m1=m1, m2=m2,
+    #                                g=g))
 
-    plt.show()
+    return fig, ax
 
 
 class Animator(object):
@@ -236,7 +248,6 @@ def _on_mouse(event, r1, r2, ax, fig, N, dt, m1, m2, g):
 
     x1, y1, x2, y2 = calc_starting_on_mouse(x0, y0, r1, r2)
     theta1, theta2 = cart_to_gen(x1, y1, x2, y2, r1, r2)
-
     x1, y1, x2, y2, T = simulate(theta1, theta2, N, dt, r1, r2, m1, m2, g)
 
     A = Animator(fig, ax, x1, y1, x2, y2, T)
