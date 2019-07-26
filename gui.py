@@ -61,58 +61,82 @@ class double_pendulum_window(QW.QMainWindow):
         self.create_plot_window()
 
     def create_options(self):
-        self.parameter_names = ['r1', 'm1', 'm2', 'g', 'k1', 'k2']
-        self.param_min = [0.05, 0.1, 0.1, 1, 0, 0]
-        self.param_max = [0.95, 10, 10, 100, 0, 0]
-        self.param_values = [0.5, 1, 1, 10, 0, 0]
-        self.param_intervals = [0.01, 0.1, 0.1, 0.5, 0, 0]
+        self.param_names = ['r1', 'm1', 'm2', 'g']
+        self.param_min = [0.05, 0.1, 0.1, 1]
+        self.param_max = [0.95, 10, 10, 100]
+        self.param_start = [45, 10, 10, 20]
+        self.param_intervals = [0.01, 0.1, 0.1, 0.5]
+        self.param_values = []
+        self.param_nums = [((max_ - min_)/int_ + 1) for
+                           min_, max_, int_ in zip(self.param_min,
+                                                   self.param_max,
+                                                   self.param_intervals)]
+        self.param_nums = [np.round(i).astype(int) for i in self.param_nums]
+
+        for min_, max_, nums in zip(self.param_min, self.param_max,
+                                    self.param_nums):
+            values = np.linspace(min_, max_, nums)
+            self.param_values.append(values)
+
         self.param_labels = []
         self.param_fields = []
+        self.param_value_labels = []
 
         self.layout_options = QW.QVBoxLayout()
         self.button_restart = QW.QPushButton('Restart program', self)
         # HOOK UP
 
-        self.layout_parameters = QW.QFormLayout()
-        for name, min_, max_, value, interval in zip(self.parameter_names,
-                                                     self.param_min,
-                                                     self.param_max,
-                                                     self.param_values,
-                                                     self.param_intervals):
+        for i, (name, max_, start, values) in enumerate(
+                                            zip(self.param_names,
+                                                self.param_nums,
+                                                self.param_start,
+                                                self.param_values)):
             label = QW.QLabel(name, self)
-            field = DoubleSlider(3, QC.Qt.Horizontal)
-            field.setMinimum(min_)
-            field.setMaximum(max_)
-            field.setValue(value)
-            field.setSingleStep(interval)
+            field = QW.QSlider(QC.Qt.Horizontal)
+            field.setMinimum(0)
+            field.setMaximum(max_-1)
+            field.setValue(start)
+            field.valueChanged.connect(
+                lambda sv, i=i: self.update_param_value(sv, i)
+            )
+            value_label = QW.QLabel(f'{values[start]:.2f}')
             self.param_labels.append(label)
             self.param_fields.append(field)
+            self.param_value_labels.append(value_label)
 
+        self.layout_parameters = QW.QGridLayout()
         for n in range(len(self.param_fields)):
-            self.layout_parameters.addRow(self.param_labels[n],
-                                          self.param_fields[n])
+            self.layout_parameters.addWidget(self.param_labels[n], n, 0)
+            self.layout_parameters.addWidget(self.param_fields[n], n, 1)
+            self.layout_parameters.addWidget(self.param_value_labels[n], n, 2)
+
         self.layout_options.addWidget(self.button_restart)
         self.layout_options.addLayout(self.layout_parameters)
         self.layout_main.addLayout(self.layout_options)
 
     def create_plot_window(self):
-        r1, m1, m2, g, k1, k2 = self.param_values
+        r1, m1, m2, g = self.param_values
         r2 = 1-r1
         N = 10000
         dt = 0.01
-        g = -g if g > 0 else g
+        g = -np.abs(g)
         self.fig, self.ax = dp.animation_window(r1, r2, m1, m2, g, N, dt)
         self.canvas = FigureCanvas(self.fig)
 
-        cid = self.canvas.mpl_connect('button_press_event',
-                                      lambda event: dp._on_mouse(
-                                          event, r1=r1,
-                                          r2=r2, ax=self.ax,
-                                          fig=self.fig, N=N,
-                                          dt=dt, m1=m1, m2=m2,
-                                          g=g))
+        self.cid = self.canvas.mpl_connect('button_press_event',
+                                           lambda event: dp._on_mouse(
+                                            event, r1=r1,
+                                            r2=r2, ax=self.ax,
+                                            fig=self.fig, N=N,
+                                            dt=dt, m1=m1, m2=m2,
+                                            g=g))
         self.addToolBar(NavigationToolbar(self.canvas, self))
         self.layout_main.addWidget(self.canvas)
+
+    def update_param_value(self, slider_index, i):
+        # updates the i'th parameter value
+        new_value = self.param_values[i][slider_index]
+        self.param_value_labels[i].setText(f'{new_value:.2f}')
 
     def quit(self):
         sys.exit()
