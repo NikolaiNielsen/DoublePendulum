@@ -67,16 +67,18 @@ class double_pendulum_window(QW.QMainWindow):
         self.param_start = [45, 10, 10, 20]
         self.param_intervals = [0.01, 0.1, 0.1, 0.5]
         self.param_values = []
+        self.current_values = []
         self.param_nums = [((max_ - min_)/int_ + 1) for
                            min_, max_, int_ in zip(self.param_min,
                                                    self.param_max,
                                                    self.param_intervals)]
         self.param_nums = [np.round(i).astype(int) for i in self.param_nums]
 
-        for min_, max_, nums in zip(self.param_min, self.param_max,
-                                    self.param_nums):
+        for min_, max_, nums, start in zip(self.param_min, self.param_max,
+                                           self.param_nums, self.param_start):
             values = np.linspace(min_, max_, nums)
             self.param_values.append(values)
+            self.current_values.append(values[start])
 
         self.param_labels = []
         self.param_fields = []
@@ -84,7 +86,7 @@ class double_pendulum_window(QW.QMainWindow):
 
         self.layout_options = QW.QVBoxLayout()
         self.button_restart = QW.QPushButton('Restart program', self)
-        # HOOK UP
+        self.button_restart.clicked.connect(self.restart_plot)
 
         for i, (name, max_, start, values) in enumerate(
                                             zip(self.param_names,
@@ -115,14 +117,40 @@ class double_pendulum_window(QW.QMainWindow):
         self.layout_main.addLayout(self.layout_options)
 
     def create_plot_window(self):
-        r1, m1, m2, g = self.param_values
+        self.fig, self.ax = dp.animation_window()
+        self.canvas = FigureCanvas(self.fig)
+
+        self.initialize_plot()
+        self.tool = NavigationToolbar(self.canvas, self)
+        self.addToolBar(self.tool)
+        self.layout_main.addWidget(self.canvas)
+
+    def update_param_value(self, slider_index, i):
+        # updates the i'th parameter value
+        new_value = self.param_values[i][slider_index]
+        self.param_value_labels[i].setText(f'{new_value:.2f}')
+        self.current_values[i] = new_value
+
+    def restart_plot(self):
+        self.canvas.close_event()
+        del self.cid
+        del self.fig
+        del self.ax
+        self.removeToolBar(self.tool)
+        del self.tool
+
+        self.layout_main.removeWidget(self.canvas)
+        self.canvas.deleteLater()
+        self.canvas = None
+
+        self.create_plot_window()
+
+    def initialize_plot(self):
+        r1, m1, m2, g = self.current_values
         r2 = 1-r1
         N = 10000
         dt = 0.01
         g = -np.abs(g)
-        self.fig, self.ax = dp.animation_window(r1, r2, m1, m2, g, N, dt)
-        self.canvas = FigureCanvas(self.fig)
-
         self.cid = self.canvas.mpl_connect('button_press_event',
                                            lambda event: dp._on_mouse(
                                             event, r1=r1,
@@ -130,13 +158,6 @@ class double_pendulum_window(QW.QMainWindow):
                                             fig=self.fig, N=N,
                                             dt=dt, m1=m1, m2=m2,
                                             g=g))
-        self.addToolBar(NavigationToolbar(self.canvas, self))
-        self.layout_main.addWidget(self.canvas)
-
-    def update_param_value(self, slider_index, i):
-        # updates the i'th parameter value
-        new_value = self.param_values[i][slider_index]
-        self.param_value_labels[i].setText(f'{new_value:.2f}')
 
     def quit(self):
         sys.exit()
