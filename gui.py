@@ -64,7 +64,7 @@ class double_pendulum_window(QW.QMainWindow):
         self.param_names = ['r1', 'm1', 'm2', 'g']
         self.param_min = [0.05, 0.1, 0.1, 1]
         self.param_max = [0.95, 10, 10, 100]
-        self.param_start = [45, 10, 10, 20]
+        self.param_start = [45, 9, 9, 18]
         self.param_intervals = [0.01, 0.1, 0.1, 0.5]
         self.param_values = []
         self.current_values = []
