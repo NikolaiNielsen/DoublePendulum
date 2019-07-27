@@ -10,57 +10,31 @@ from matplotlib.backends.backend_qt5agg import (
 import DoublePendulum as dp
 
 
-class DoubleSlider(QW.QSlider):
-    """
-    From:
-    https://stackoverflow.com/a/50300848
-    """
-
-    # create our our signal that we can connect to if necessary
-    doubleValueChanged = QC.pyqtSignal(float)
-
-    def __init__(self, decimals=3, *args, **kargs):
-        super(DoubleSlider, self).__init__(*args, **kargs)
-        self._multi = 10 ** decimals
-
-        self.valueChanged.connect(self.emitDoubleValueChanged)
-
-    def emitDoubleValueChanged(self):
-        value = float(super(DoubleSlider, self).value())/self._multi
-        self.doubleValueChanged.emit(value)
-
-    def value(self):
-        return float(super(DoubleSlider, self).value()) / self._multi
-
-    def setMinimum(self, value):
-        return super(DoubleSlider, self).setMinimum(value * self._multi)
-
-    def setMaximum(self, value):
-        return super(DoubleSlider, self).setMaximum(value * self._multi)
-
-    def setSingleStep(self, value):
-        return super(DoubleSlider, self).setSingleStep(value * self._multi)
-
-    def singleStep(self):
-        return float(super(DoubleSlider, self).singleStep()) / self._multi
-
-    def setValue(self, value):
-        super(DoubleSlider, self).setValue(int(value * self._multi))
-
-
 class double_pendulum_window(QW.QMainWindow):
+    """
+    The main window which houses both options and plot canvas
+    """
     def __init__(self):
         super().__init__()
+
+        # Create the main Widget and layout
         self._main = QW.QWidget()
         self.setWindowTitle('Double Pendulum Simulation')
         self.setCentralWidget(self._main)
         self.layout_main = QW.QHBoxLayout(self._main)
         # A shortcut to close the app.
         self.closer = QW.QShortcut(QG.QKeySequence('Ctrl+Q'), self, self.quit)
+
         self.create_options()
         self.create_plot_window()
 
     def create_options(self):
+        # Create all the options. Both the necessary backend and frontend
+
+        # Backend - here are all the parameters
+        # Since QSlider only works for integers, we create a linspace vector
+        # for each parameter and use the QSlider value as the index for the
+        # linspace vector.
         self.param_names = ['r1', 'm1', 'm2', 'g']
         self.param_min = [0.05, 0.1, 0.1, 1]
         self.param_max = [0.95, 10, 10, 100]
@@ -76,10 +50,13 @@ class double_pendulum_window(QW.QMainWindow):
 
         for min_, max_, nums, start in zip(self.param_min, self.param_max,
                                            self.param_nums, self.param_start):
+            # Here we create the actual linspace vectors and add them to the
+            # backend
             values = np.linspace(min_, max_, nums)
             self.param_values.append(values)
             self.current_values.append(values[start])
 
+        # Frontend
         self.param_labels = []
         self.param_fields = []
         self.param_value_labels = []
@@ -88,6 +65,7 @@ class double_pendulum_window(QW.QMainWindow):
         self.button_restart = QW.QPushButton('Restart program', self)
         self.button_restart.clicked.connect(self.restart_plot)
 
+        # Create each line in the parameter layout
         for i, (name, max_, start, values) in enumerate(
                                             zip(self.param_names,
                                                 self.param_nums,
@@ -106,6 +84,7 @@ class double_pendulum_window(QW.QMainWindow):
             self.param_fields.append(field)
             self.param_value_labels.append(value_label)
 
+        # Add the parameters to the layout
         self.layout_parameters = QW.QGridLayout()
         for n in range(len(self.param_fields)):
             self.layout_parameters.addWidget(self.param_labels[n], n, 0)
@@ -117,6 +96,7 @@ class double_pendulum_window(QW.QMainWindow):
         self.layout_main.addLayout(self.layout_options)
 
     def create_plot_window(self):
+        # Creates the actual plot window and initializes the animation
         self.fig, self.ax = dp.animation_window()
         self.canvas = FigureCanvas(self.fig)
 
@@ -132,20 +112,29 @@ class double_pendulum_window(QW.QMainWindow):
         self.current_values[i] = new_value
 
     def restart_plot(self):
+        # Clears the plotting window and makes way for a new animtion
+        # Stop the animation
         self.canvas.close_event()
+
+        # Delete the animation connection ID, figure and axes objects
         del self.cid
         del self.fig
         del self.ax
+
+        # Remove and delete the toolbar
         self.removeToolBar(self.tool)
         del self.tool
 
+        # Delete the canvas
         self.layout_main.removeWidget(self.canvas)
         self.canvas.deleteLater()
         self.canvas = None
 
+        # Create the new window
         self.create_plot_window()
 
     def initialize_plot(self):
+        # Initialize the animation class
         r1, m1, m2, g = self.current_values
         r2 = 1-r1
         N = 10000
