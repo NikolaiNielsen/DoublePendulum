@@ -41,6 +41,12 @@ def gen_to_cart(theta1, theta2, r1, r2):
     return x1, y1, x2, y2
 
 
+def cart_to_gen(x1, y1, x2, y2, r1, r2):
+    theta1 = np.arctan2(x1, y1)
+    theta2 = np.arctan2(x2-x1, y2-y1)
+    return theta1, theta2
+
+
 def calc_omega1(theta1, theta2, r1, r2, m1, m2, g):
     """
     Calculates the acceleration of the first pendulum mass
@@ -123,8 +129,10 @@ def simulate(theta1, theta2, N, dt, r1, r2, m1, m2, g):
     theta2_arr = state[:, 2]
 
     x1, y1, x2, y2 = gen_to_cart(theta1_arr, theta2_arr, r1, r2)
+    pot1, pot2 = calc_potential_energy(y1, y2, g, m1, m2)
+    kin1, kin2 = calc_kinetic_energy(state, m1, m2, r1, r2)
 
-    return x1, y1, x2, y2, T
+    return x1, y1, x2, y2, T, pot1, pot2, kin1, kin2
 
 
 def calc_starting_on_mouse(x1, y1, r1, r2):
@@ -160,7 +168,29 @@ def calc_starting_on_mouse(x1, y1, r1, r2):
 
     y32 = y2 + h*(x1-x0)/d
     x32 = x2 - h*(y1-y0)/d
-    return (x31, y31, x1, y1) if y31 <= y32 else (x32, y32, x1, y1)
+    return (x31, y31, x1, y1) if y31 >= y32 else (x32, y32, x1, y1)
+
+
+def calc_potential_energy(y1, y2, g, m1, m2):
+    """
+    Calculates the potential energy of the system for each step in the
+    simulation.
+    """
+    pot1 = y1 * g * m1
+    pot2 = y2 * g * m2
+    return pot1, pot2
+
+
+def calc_kinetic_energy(state, m1, m2, r1, r2):
+    """
+    Calculates the kinetic energy of the system for each time step
+    """
+    t1, o1, t2, o2 = state
+    kin1 = 0.5 * m1 * r1*r1 * o1*o1
+    trig = np.cos(t1)*np.cos(t2) + np.sin(t1)*np.sin(t2)
+    kin2 = 0.5 * m2 * (r1*r1*o1*o1 + r2*r2*o2*o2 + 2*r1*r2*o1*o2*trig)
+
+    return kin1, kin2
 
 
 def plot_circle(x0, y0, r, ax):
@@ -210,12 +240,6 @@ class Animator(object):
         self.time_text.set_text(f'Time: {self.time[i]:.2f}')
         self.plot.set_data(self.xdata[i], self.ydata[i])
         return self.artists
-
-
-def cart_to_gen(x1, y1, x2, y2, r1, r2):
-    theta1 = np.arctan2(x1, y1)
-    theta2 = np.arctan2(x2-x1, y2-y1)
-    return theta1, theta2
 
 
 def _on_mouse(event, r1, r2, ax, fig, N, dt, m1, m2, g):
