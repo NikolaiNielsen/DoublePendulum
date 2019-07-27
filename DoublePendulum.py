@@ -151,7 +151,7 @@ def calc_starting_on_mouse(x1, y1, r1, r2):
         y3 = y3 if y1 > 0 else -y3
         return x3, y3, x1_new, y1_new
 
-    a = (r1**2 - r1**2 + d**2)/(2*d)
+    a = (r1**2 - r2**2 + d**2)/(2*d)
     h = np.sqrt(r1**2 - a**2)
     x2 = x0 + a*(x1 - x0)/d
     y2 = y0 + a*(y1 - y0)/d
@@ -171,30 +171,12 @@ def plot_circle(x0, y0, r, ax):
     ax.plot(x, y)
 
 
-def animation_window(r1=r1, r2=r2, m1=m1, m2=m2, g=g, N=N, dt=dt, obj=None):
+def animation_window():
 
     fig = plt.figure(figsize=(6, 6))
     ax = fig.gca()
     ax.set_xlim(-1, 1)
     ax.set_ylim(-1, 1)
-
-    # g = -g if g > 0 else g
-    # if obj is not None:
-    #     obj.canvas.mpl_connect('button_press_event',
-    #                            lambda event: _on_mouse(
-    #                                event, r1=r1,
-    #                                r2=r2, ax=obj.ax,
-    #                                fig=obj.fig, N=N,
-    #                                dt=dt, m1=m1, m2=m2,
-    #                                g=g))
-    # else:
-    #     fig.canvas.mpl_connect('button_press_event',
-    #                            lambda event: _on_mouse(
-    #                                event, r1=r1,
-    #                                r2=r2, ax=ax,
-    #                                fig=fig, N=N,
-    #                                dt=dt, m1=m1, m2=m2,
-    #                                g=g))
 
     return fig, ax
 
