@@ -97,7 +97,7 @@ class double_pendulum_window(QW.QMainWindow):
 
     def create_plot_window(self):
         # Creates the actual plot window and initializes the animation
-        self.fig, self.ax = dp.animation_window()
+        self.fig, self.ax, self.ax2 = dp.animation_window()
         self.canvas = FigureCanvas(self.fig)
 
         self.initialize_plot()
