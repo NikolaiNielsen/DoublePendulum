@@ -33,10 +33,10 @@ def gen_to_cart(theta1, theta2, r1, r2):
     """
 
     x1 = r1 * np.sin(theta1)
-    y1 = r1 * np.cos(theta1)
+    y1 = - r1 * np.cos(theta1)
 
     x2 = x1 + r2 * np.sin(theta2)
-    y2 = y1 + r2 * np.cos(theta2)
+    y2 = y1 - r2 * np.cos(theta2)
 
     return x1, y1, x2, y2
 
@@ -131,8 +131,9 @@ def simulate(theta1, theta2, N, dt, r1, r2, m1, m2, g):
     x1, y1, x2, y2 = gen_to_cart(theta1_arr, theta2_arr, r1, r2)
     pot1, pot2 = calc_potential_energy(y1, y2, g, m1, m2)
     kin1, kin2 = calc_kinetic_energy(state, m1, m2, r1, r2)
+    tot = calc_total_energy(state, m1, m2, r1, r2, g)
 
-    return x1, y1, x2, y2, T, pot1, pot2, kin1, kin2
+    return x1, y1, x2, y2, T, pot1, pot2, kin1, kin2, tot
 
 
 def calc_starting_on_mouse(x1, y1, r1, r2):
@@ -168,7 +169,21 @@ def calc_starting_on_mouse(x1, y1, r1, r2):
 
     y32 = y2 + h*(x1-x0)/d
     x32 = x2 - h*(y1-y0)/d
+
+    y31 = -y31
+    y32 = -y32
     return (x31, y31, x1, y1) if y31 >= y32 else (x32, y32, x1, y1)
+
+
+def calc_total_energy(state, m1, m2, r1, r2, g):
+    t1, o1, t2, o2 = state.T
+    dt = t1-t2
+    kin = (0.5*(m1*m2)*r1*r1*o1*o2 + 0.5*m2*r2*r2*o2*o2 +
+           m2*r1*r2*o1*o2*np.cos(dt))
+    pot = -(m1+m2)*g*r1*np.cos(t1) - m2*g*r2*np.cos(t2)
+
+    tot = kin+pot
+    return tot
 
 
 def calc_potential_energy(y1, y2, g, m1, m2):
@@ -185,9 +200,9 @@ def calc_kinetic_energy(state, m1, m2, r1, r2):
     """
     Calculates the kinetic energy of the system for each time step
     """
-    t1, o1, t2, o2 = state
+    t1, o1, t2, o2 = state.T
     kin1 = 0.5 * m1 * r1*r1 * o1*o1
-    trig = np.cos(t1)*np.cos(t2) + np.sin(t1)*np.sin(t2)
+    trig = np.cos(t1-t2)
     kin2 = 0.5 * m2 * (r1*r1*o1*o1 + r2*r2*o2*o2 + 2*r1*r2*o1*o2*trig)
 
     return kin1, kin2
@@ -217,7 +232,7 @@ def animation_window():
     b_1 = 1 - h_1 - h_border
     w_2 = w_1
     # Height of ax2 is what ever is left
-    h_2 = 1-h_1-3*h_border
+    h_2 = 1-h_1-2*h_border
 
     fig = plt.figure(figsize=(w, h))
     ax1 = fig.add_axes([w_border, b_1, w_1, h_1])
@@ -229,21 +244,18 @@ def animation_window():
     ax2.set_xticks([])
     ax2.set_yticks([])
 
-    # Equal axes for ax1
-    ax1.set_xlim(-1, 1)
-    ax1.set_ylim(-1, 1)
-    ax1.set_aspect('equal')
-
     return fig, ax1, ax2
 
 
 class Animator(object):
     # The animator object, created for every simulation we want to plot
-    def __init__(self, fig, ax, x1, y1, x2, y2, T):
+    def __init__(self, fig, ax, ax2, x1, y1, x2, y2, T,
+                 pot1, kin1, pot2, kin2, tot):
         # plug stuff into the object and create the empty line
-        self.lims = (-1, 1)
+        self.lims = (-1.1, 1.1)
         self.ax = ax
         self.fig = fig
+        self.ax2 = ax2
         self.ax.axis('equal')
         self.ax.set_xlim(*self.lims)
         self.ax.set_ylim(*self.lims)
@@ -254,12 +266,27 @@ class Animator(object):
         self.ydata = np.array((naught, y1, y2)).T
         self.time = T
         self.time_text = self.ax.text(-0.9, 0.9, 'Time: 0')
+        self.pot1 = pot1
+        self.pot2 = pot2
+        self.kin1 = kin1
+        self.kin2 = kin2
+
+        self.total_energy = tot
+        self.pot1_plot = self.ax2.plot(self.pot1)
+        self.pot2_plot = self.ax2.plot(self.pot2)
+        self.kin1_plot = self.ax2.plot(self.kin1)
+        self.kin2_plot = self.ax2.plot(self.kin2)
+        self.total_plot = self.ax2.plot(self.total_energy)
+
         self.artists = [self.plot, self.time_text]
 
     def _init(self):
         # function to clear the line every time it is plotted (init function
         # for FuncAnim)
         self.plot.set_data([], [])
+        self.ax.set_xlim(-1, 1)
+        self.ax.set_ylim(-1, 1)
+        self.ax.set_aspect('equal')
         return self.artists
 
     def __call__(self, i):
@@ -268,7 +295,7 @@ class Animator(object):
         return self.artists
 
 
-def _on_mouse(event, r1, r2, ax, fig, N, dt, m1, m2, g):
+def _on_mouse(event, r1, r2, ax, ax2, fig, N, dt, m1, m2, g):
     if event.button != 1:
         return
 
@@ -281,9 +308,10 @@ def _on_mouse(event, r1, r2, ax, fig, N, dt, m1, m2, g):
 
     x1, y1, x2, y2 = calc_starting_on_mouse(x0, y0, r1, r2)
     theta1, theta2 = cart_to_gen(x1, y1, x2, y2, r1, r2)
-    x1, y1, x2, y2, T, *_ = simulate(theta1, theta2, N, dt, r1, r2, m1, m2, g)
+    x1, y1, x2, y2, T, p1, k1, p2, k2, tot = simulate(theta1, theta2, N, dt,
+                                                      r1, r2, m1, m2, g)
 
-    A = Animator(fig, ax, x1, y1, x2, y2, T)
+    A = Animator(fig, ax, ax2, x1, y1, x2, y2, T, p1, k1, p2, k2, tot)
 
     ani = animation.FuncAnimation(fig, A, frames=N,
                                   init_func=A._init,
@@ -295,5 +323,4 @@ def _on_mouse(event, r1, r2, ax, fig, N, dt, m1, m2, g):
 
 
 if __name__ == '__main__':
-    fig, ax1, ax2 = animation_window()
-    plt.show()
+    gui.main()
