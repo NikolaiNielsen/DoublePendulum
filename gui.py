@@ -99,10 +99,12 @@ class double_pendulum_window(QW.QMainWindow):
         # Creates the actual plot window and initializes the animation
         self.fig, self.ax, self.ax2 = dp.animation_window()
         self.canvas = FigureCanvas(self.fig)
+        self.canvas.setFixedSize(600, 800)
 
         self.initialize_plot()
         self.tool = NavigationToolbar(self.canvas, self)
         self.addToolBar(self.tool)
+
         self.layout_main.addWidget(self.canvas)
 
     def update_param_value(self, slider_index, i):
@@ -137,13 +139,13 @@ class double_pendulum_window(QW.QMainWindow):
         # Initialize the animation class
         r1, m1, m2, g = self.current_values
         r2 = 1-r1
-        N = 10000
-        dt = 0.01
-        g = -np.abs(g)
+        N = 2001
+        dt = 0.005
         self.cid = self.canvas.mpl_connect('button_press_event',
                                            lambda event: dp._on_mouse(
                                             event, r1=r1,
                                             r2=r2, ax=self.ax,
+                                            ax2=self.ax2,
                                             fig=self.fig, N=N,
                                             dt=dt, m1=m1, m2=m2,
                                             g=g))
