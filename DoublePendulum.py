@@ -203,12 +203,38 @@ def plot_circle(x0, y0, r, ax):
 
 def animation_window():
 
-    fig = plt.figure(figsize=(6, 6))
-    ax = fig.gca()
-    ax.set_xlim(-1, 1)
-    ax.set_ylim(-1, 1)
+    # Size specs. We want a figure of width 6 and height 8
+    w, h = 6, 8
+    # We want the border to be 0.05*width, so converting that to fractional
+    # height is width*0.05/height
+    w_border = 0.05
+    h_border = (w*w_border)/h
+    # Width is just 2-border
+    w_1 = 1-2*w_border
+    h_1 = (w*w_1)/h
+    # Bottom position of ax1. We want the bottom to be at top, minus 1 border,
+    # minus the height of the axes
+    b_1 = 1 - h_1 - h_border
+    w_2 = w_1
+    # Height of ax2 is what ever is left
+    h_2 = 1-h_1-3*h_border
 
-    return fig, ax
+    fig = plt.figure(figsize=(w, h))
+    ax1 = fig.add_axes([w_border, b_1, w_1, h_1])
+    ax2 = fig.add_axes([w_border, h_border, w_2, h_2])
+
+    # We don't need tick marks
+    ax1.set_xticks([])
+    ax1.set_yticks([])
+    ax2.set_xticks([])
+    ax2.set_yticks([])
+
+    # Equal axes for ax1
+    ax1.set_xlim(-1, 1)
+    ax1.set_ylim(-1, 1)
+    ax1.set_aspect('equal')
+
+    return fig, ax1, ax2
 
 
 class Animator(object):
@@ -255,7 +281,7 @@ def _on_mouse(event, r1, r2, ax, fig, N, dt, m1, m2, g):
 
     x1, y1, x2, y2 = calc_starting_on_mouse(x0, y0, r1, r2)
     theta1, theta2 = cart_to_gen(x1, y1, x2, y2, r1, r2)
-    x1, y1, x2, y2, T = simulate(theta1, theta2, N, dt, r1, r2, m1, m2, g)
+    x1, y1, x2, y2, T, *_ = simulate(theta1, theta2, N, dt, r1, r2, m1, m2, g)
 
     A = Animator(fig, ax, x1, y1, x2, y2, T)
 
@@ -269,4 +295,5 @@ def _on_mouse(event, r1, r2, ax, fig, N, dt, m1, m2, g):
 
 
 if __name__ == '__main__':
-    gui.main()
+    fig, ax1, ax2 = animation_window()
+    plt.show()
