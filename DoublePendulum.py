@@ -42,7 +42,7 @@ def gen_to_cart(theta1, theta2, r1, r2):
 
 
 def cart_to_gen(x1, y1, x2, y2, r1, r2):
-    theta1 = np.mod(np.arctan2(y1, x1) + np.pi/2, np.pi*2)
+    theta1 = np.mod(np.arctan2(y1, x1)+np.pi/2, 2*np.pi)
     theta2 = np.mod(np.arctan2(y2-y1, x2-x1) + np.pi/2, np.pi*2)
     return theta1, theta2
 
@@ -149,7 +149,7 @@ def calc_starting_on_mouse(x1, y1, r1, r2):
     # First we check if the point is outside of the combined radius
     if d >= r1+r2:
         # Calculate the angle and new points
-        theta = np.mod(np.arctan(y1, x1)+np.pi/2, 2*np.pi)
+        theta = np.mod(np.arctan2(y1, x1)+np.pi/2, 2*np.pi)
         x3 = r1 * np.cos(theta)
         y3 = r1 * np.sin(theta)
         x1_new = (r1+r2) * np.cos(theta)
@@ -243,6 +243,8 @@ def animation_window():
     ax1.set_yticks([])
     ax2.set_xticks([])
     ax2.set_yticks([])
+    ax1.set_xlim(-1, 1)
+    ax1.set_ylim(-1, 1)
     return fig, ax1, ax2
 
 
