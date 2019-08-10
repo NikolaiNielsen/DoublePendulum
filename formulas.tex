@@ -1,0 +1,64 @@
+% Nikolai Nielsens "Fysiske Fag" preamble
+\documentclass[a4paper,11pt]{article}
+\usepackage[english]{babel}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[margin=0.75in]{geometry}
+\usepackage{wrapfig}
+\usepackage{Nikolai}
+\usepackage{pdfpages}
+
+\usepackage{listings}
+\usepackage{color}
+\definecolor{Maroon}{RGB}{175,50,53}
+\definecolor{OliveGreen}{RGB}{60,128,49}
+\definecolor{Orange}{RGB}{245,129,55}
+
+\lstset{ %
+	language=python,
+	numbers=left,
+	stepnumber=1,
+	breaklines=true,
+	keepspaces=true,
+	showstringspaces=false, 
+	tabsize=4,
+	basicstyle=\footnotesize\ttfamily,
+	keywordstyle=\bfseries\color{Maroon},
+	commentstyle=\itshape\color{OliveGreen},
+	identifierstyle=\color{blue},
+	stringstyle=\color{Orange},
+}
+
+% Til nummerering af ligninger. Så der står (afsnit.ligning) og ikke bare (ligning)
+
+\newcommand{\coef}[1]{_{[#1]}}
+
+% Header
+%\usepackage{fancyhdr}
+%\head{}
+%\pagestyle{fancy}
+
+%Titel
+
+\begin{document}
+	\section{Lagrangian}
+	The Lagrangian for the system is given by
+	\begin{equation}\label{key}
+		L = T - V
+	\end{equation}
+	with $ T $ being the kinetic energy and $ V $ being the potential energy. These can be further split up into the kinetic and potential energy for each pendulum. We get
+	\begin{equation}\label{key}
+		T_1 = \frac{1}{2} m_1 (\dot{x}_1^2 + \dot{y}_1^2), \quad T_2 = \frac{1}{2} m_2 (\dot{x}_2^2 + \dot{y}_2^2)
+	\end{equation}
+	And
+	\begin{equation}\label{key}
+		V_1 = m_1 g y_1, \quad V_2 = m_2 g y_2
+	\end{equation}
+	We further choose to use the angles the pendulums make with the negative $ y $-direction as the generalized coordinates. The conversions are
+	\begin{equation}\label{key}
+		x_1 = r_1 \sin \theta_1, \quad y_1 = -r_1 \cos \theta_1, \quad x_2 = r_1 \sin \theta_1 + r_2 \sin \theta_2, \quad y_2 = -r_1 \cos \theta_1 - r_2 \cos \theta_2
+	\end{equation}
+	and
+	\begin{equation}\label{key}
+		\theta_1 = \arctan(y_1/x_1) + \pi/2\ \text{mod}\ 2\pi\quad  \theta_2 = \arctan\frac{y_2-y_1}{x_2-x_1} + \pi/2 \ \text{mod}\ 2\pi 
+	\end{equation}
+\end{document}
