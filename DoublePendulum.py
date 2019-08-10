@@ -47,30 +47,26 @@ def cart_to_gen(x1, y1, x2, y2, r1, r2):
     return theta1, theta2
 
 
-def calc_omega1(theta1, theta2, r1, r2, m1, m2, g):
+def calc_potential_energy(y1, y2, g, m1, m2):
     """
-    Calculates the acceleration of the first pendulum mass
+    Calculates the potential energy of the system for each step in the
+    simulation.
     """
-
-    mass = m2 / (m1 + m2)
-    numerator = g/r1 * (mass * np.sin(theta2) * (np.cos(theta1 - theta2) +
-                                                 np.sin(theta1 - theta2)) -
-                        np.sin(theta1))
-    denominator = 1 + mass * np.cos(2 * (theta1 - theta2))
-
-    result = numerator / denominator
-    return result
+    pot1 = y1 * g * m1
+    pot2 = y2 * g * m2
+    return pot1, pot2
 
 
-def calc_omega2(f, theta1, theta2, r1, r2, m1, m2, g):
+def calc_kinetic_energy(state, m1, m2, r1, r2):
     """
-    Calculates the acceleration of the second pendulum mass
+    Calculates the kinetic energy of the system for each time step
     """
+    t1, o1, t2, o2 = state.T
+    kin1 = 0.5 * m1 * r1*r1 * o1*o1
+    trig = np.cos(t1-t2)
+    kin2 = 0.5 * m2 * (r1*r1*o1*o1 + r2*r2*o2*o2 + 2*r1*r2*o1*o2*trig)
 
-    res = (r1/r2 * f * (np.cos(theta1 - theta2) - np.sin(theta1 - theta2)) -
-           g/r2 * np.sin(theta2))
-
-    return res
+    return kin1, kin2
 
 
 def calc_derivs(state, r1, r2, m1, m2, g):
@@ -169,39 +165,6 @@ def calc_starting_on_mouse(x1, y1, r1, r2):
     return (x31, y31, x1, y1) if y31 >= y32 else (x32, y32, x1, y1)
 
 
-def calc_total_energy(state, m1, m2, r1, r2, g):
-    t1, o1, t2, o2 = state.T
-    dt = t1-t2
-    kin = (0.5*(m1*m2)*r1*r1*o1*o2 + 0.5*m2*r2*r2*o2*o2 +
-           m2*r1*r2*o1*o2*np.cos(dt))
-    pot = -(m1+m2)*g*r1*np.cos(t1) - m2*g*r2*np.cos(t2)
-
-    tot = kin+pot
-    return tot
-
-
-def calc_potential_energy(y1, y2, g, m1, m2):
-    """
-    Calculates the potential energy of the system for each step in the
-    simulation.
-    """
-    pot1 = y1 * g * m1
-    pot2 = y2 * g * m2
-    return pot1, pot2
-
-
-def calc_kinetic_energy(state, m1, m2, r1, r2):
-    """
-    Calculates the kinetic energy of the system for each time step
-    """
-    t1, o1, t2, o2 = state.T
-    kin1 = 0.5 * m1 * r1*r1 * o1*o1
-    trig = np.cos(t1-t2)
-    kin2 = 0.5 * m2 * (r1*r1*o1*o1 + r2*r2*o2*o2 + 2*r1*r2*o1*o2*trig)
-
-    return kin1, kin2
-
-
 def plot_circle(x0, y0, r, ax, **kwargs):
     N = 50
     theta = np.linspace(0, 2*np.pi, N)
@@ -239,7 +202,6 @@ def animation_window():
     ax2.set_yticks([])
     ax1.set_xlim(-1, 1)
     ax1.set_ylim(-1, 1)
-    # plot_circle(0, 0, 1, ax1, alpha=0.5, color='k')
     return fig, ax1, ax2
 
 
