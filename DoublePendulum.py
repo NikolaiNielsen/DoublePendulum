@@ -42,7 +42,7 @@ def gen_to_cart(theta1, theta2, r1, r2):
 
 
 def cart_to_gen(x1, y1, x2, y2, r1, r2):
-    theta1 = np.mod(np.arctan2(y1, x1)+np.pi/2, 2*np.pi)
+    theta1 = np.mod(np.arctan2(y1, x1) + np.pi/2, 2*np.pi)
     theta2 = np.mod(np.arctan2(y2-y1, x2-x1) + np.pi/2, np.pi*2)
     return theta1, theta2
 
@@ -149,15 +149,11 @@ def calc_starting_on_mouse(x1, y1, r1, r2):
     # First we check if the point is outside of the combined radius
     if d >= r1+r2:
         # Calculate the angle and new points
-        theta = np.mod(np.arctan2(y1, x1)+np.pi/2, 2*np.pi)
+        theta = np.mod(np.arctan2(y1, x1), 2*np.pi)
         x3 = r1 * np.cos(theta)
         y3 = r1 * np.sin(theta)
         x1_new = (r1+r2) * np.cos(theta)
         y1_new = (r1+r2) * np.sin(theta)
-
-        # We need to flip the y-coordinates if y1 is below 0
-        y1_new = y1_new if y1 > 0 else -y1_new
-        y3 = y3 if y1 > 0 else -y3
         return x3, y3, x1_new, y1_new
 
     a = (r1**2 - r2**2 + d**2)/(2*d)
@@ -170,8 +166,6 @@ def calc_starting_on_mouse(x1, y1, r1, r2):
     y32 = y2 + h*(x1-x0)/d
     x32 = x2 - h*(y1-y0)/d
 
-    y31 = -y31
-    y32 = -y32
     return (x31, y31, x1, y1) if y31 >= y32 else (x32, y32, x1, y1)
 
 
@@ -208,12 +202,12 @@ def calc_kinetic_energy(state, m1, m2, r1, r2):
     return kin1, kin2
 
 
-def plot_circle(x0, y0, r, ax):
+def plot_circle(x0, y0, r, ax, **kwargs):
     N = 50
     theta = np.linspace(0, 2*np.pi, N)
     x = r*np.cos(theta) + x0
     y = r*np.sin(theta) + y0
-    ax.plot(x, y)
+    ax.plot(x, y, **kwargs)
 
 
 def animation_window():
@@ -245,6 +239,7 @@ def animation_window():
     ax2.set_yticks([])
     ax1.set_xlim(-1, 1)
     ax1.set_ylim(-1, 1)
+    # plot_circle(0, 0, 1, ax1, alpha=0.5, color='k')
     return fig, ax1, ax2
 
 
@@ -272,12 +267,13 @@ class Animator(object):
         self.kin1 = kin1
         self.kin2 = kin2
 
-        self.total_energy = tot
-        self.pot1_plot = self.ax2.plot(self.pot1)
-        self.pot2_plot = self.ax2.plot(self.pot2)
-        self.kin1_plot = self.ax2.plot(self.kin1)
-        self.kin2_plot = self.ax2.plot(self.kin2)
-        self.total_plot = self.ax2.plot(self.total_energy)
+        self.total_energy = pot1+pot2+kin1+kin2
+        self.pot1_plot = self.ax2.plot(self.pot1 + self.pot2, label='Potential')
+        # self.pot2_plot = self.ax2.plot(self.pot2)
+        self.kin1_plot = self.ax2.plot(self.kin1 + self.kin2, label='kinetic')
+        # self.kin2_plot = self.ax2.plot(self.kin2)
+        self.total_plot = self.ax2.plot(self.total_energy, label='total')
+        self.energy_label = self.ax2.legend()
 
         self.artists = [self.plot, self.time_text]
 
@@ -309,9 +305,11 @@ def _on_mouse(event, r1, r2, ax, ax2, fig, N, dt, m1, m2, g):
 
     x1, y1, x2, y2 = calc_starting_on_mouse(x0, y0, r1, r2)
     theta1, theta2 = cart_to_gen(x1, y1, x2, y2, r1, r2)
+    # print(f'starting: ({x2:.2f},{y2:.2f})')
+    x1, y1, x2, y2 = gen_to_cart(theta1, theta2, r1, r2)
+    # ax.plot((0, x1, x2), (0, y1, y2), color='r')
     x1, y1, x2, y2, T, p1, k1, p2, k2, tot = simulate(theta1, theta2, N, dt,
                                                       r1, r2, m1, m2, g)
-
     A = Animator(fig, ax, ax2, x1, y1, x2, y2, T, p1, k1, p2, k2, tot)
 
     ani = animation.FuncAnimation(fig, A, frames=N,
