@@ -122,6 +122,7 @@ class double_pendulum_window(QW.QMainWindow):
         del self.cid
         del self.fig
         del self.ax
+        del self.ax2
 
         # Remove and delete the toolbar
         self.removeToolBar(self.tool)
