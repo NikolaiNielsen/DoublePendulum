@@ -131,7 +131,7 @@ def simulate(theta1, theta2, N, dt, r1, r2, m1, m2, g):
     x1, y1, x2, y2 = gen_to_cart(theta1_arr, theta2_arr, r1, r2)
     pot1, pot2 = calc_potential_energy(y1, y2, g, m1, m2)
     kin1, kin2 = calc_kinetic_energy(state, m1, m2, r1, r2)
-    tot = calc_total_energy(state, m1, m2, r1, r2, g)
+    tot = pot1 + pot2 + kin1 + kin2
 
     return x1, y1, x2, y2, T, pot1, pot2, kin1, kin2, tot
 
@@ -267,11 +267,11 @@ class Animator(object):
         self.kin1 = kin1
         self.kin2 = kin2
 
-        self.total_energy = pot1+pot2+kin1+kin2
-        self.pot1_plot = self.ax2.plot(self.pot1 + self.pot2, label='Potential')
-        # self.pot2_plot = self.ax2.plot(self.pot2)
-        self.kin1_plot = self.ax2.plot(self.kin1 + self.kin2, label='kinetic')
-        # self.kin2_plot = self.ax2.plot(self.kin2)
+        self.total_energy = tot
+        self.pot1_plot = self.ax2.plot(self.pot1, label='Pot1')
+        self.pot2_plot = self.ax2.plot(self.pot2, label='Pot2')
+        self.kin1_plot = self.ax2.plot(self.kin1, label='Kin1')
+        self.kin2_plot = self.ax2.plot(self.kin2, label='Kin2')
         self.total_plot = self.ax2.plot(self.total_energy, label='total')
         self.energy_label = self.ax2.legend()
 
@@ -305,9 +305,7 @@ def _on_mouse(event, r1, r2, ax, ax2, fig, N, dt, m1, m2, g):
 
     x1, y1, x2, y2 = calc_starting_on_mouse(x0, y0, r1, r2)
     theta1, theta2 = cart_to_gen(x1, y1, x2, y2, r1, r2)
-    # print(f'starting: ({x2:.2f},{y2:.2f})')
     x1, y1, x2, y2 = gen_to_cart(theta1, theta2, r1, r2)
-    # ax.plot((0, x1, x2), (0, y1, y2), color='r')
     x1, y1, x2, y2, T, p1, k1, p2, k2, tot = simulate(theta1, theta2, N, dt,
                                                       r1, r2, m1, m2, g)
     A = Animator(fig, ax, ax2, x1, y1, x2, y2, T, p1, k1, p2, k2, tot)
