@@ -59,6 +59,30 @@
 	\end{equation}
 	and
 	\begin{equation}\label{key}
-		\theta_1 = \arctan(y_1/x_1) + \pi/2\ \text{mod}\ 2\pi\quad  \theta_2 = \arctan\frac{y_2-y_1}{x_2-x_1} + \pi/2 \ \text{mod}\ 2\pi 
+		\theta_1 = \arctan(y_1/x_1) + \pi/2\ \text{mod}\ 2\pi\quad  \theta_2 = \arctan\frac{y_2-y_1}{x_2-x_1} + \pi/2 \ \text{mod}\ 2\pi.
 	\end{equation}
+	In the new coordinates, the Lagrangian becomes
+	\begin{equation}\label{key}
+		L = \frac{m_1+m_2}{2}(\dot{\theta}_1 r_1)^2 + \frac{m_2}{2} (\dot{\theta}_2 r_2)^2 + m_2 r_1r_2\dot{\theta}_1\dot{\theta}_2 \cos(\theta_1-\theta_2) + gr_1(m_1+m_2) \cos\theta_1 + m_2gr_2 \cos\theta_2
+	\end{equation}
+	Giving us the equations of motion:
+	\begin{align}
+		\ddot{\theta}_1 &= -\frac{m_2 r_2}{(m_1+m_2)r_1} \bb{\ddot{\theta}_2 \cos(\theta_1-\theta_2) + \dot{\theta}_2^2 \sin(\theta_1-\theta_2)} - \frac{g}{r_1} \sin\theta_1\\
+		\ddot{\theta}_2 &= -\frac{r_1}{r_2} \ddot{\theta}_1 \cos(\theta_1-\theta_2) + \frac{r_1}{r_2} \dot{\theta}_1^2 \sin(\theta_1-\theta_2) - \frac{g}{r_2} \sin\theta_2. 
+	\end{align}
+	or, decoupling them:
+	\begin{align*}
+		\ddot{\theta}_1 = f(\theta_1, \theta_2, \dot{\theta}_1, \dot{\theta}_2) &= \frac{m_2 r_1 \dot{\theta}_1^2 \sin(\theta_1-\theta_2)\cos(\theta_1-\theta_2) + m_2g\sin\theta_2 \cos(\theta_1-\theta_2)}{(m_1+m_2)r_1 - m_2r_1\cos^2(\theta_1-\theta_2)} \\
+		&+  \frac{m_2 r_2 \dot{\theta}_2^2 \sin(\theta_1-\theta_2) - (m_1+m_2)g\sin\theta_1}{(m_1+m_2)r_1 - m_2r_1\cos^2(\theta_1-\theta_2)}\\
+		\ddot{\theta}_2 = g(\theta_1, \theta_2, \dot{\theta}_1, \dot{\theta}_2) &= \frac{-m_2r_2\dot{\theta}_2^2 \sin(\theta_1-\theta_2)\cos(\theta_1-\theta_2) + (m_1+m_2) g \sin\theta_1 \cos(\theta_1-\theta_2)}{\frac{r_2}{r_1} \bb{(m_1+m_2)r_1 - m_2r_1\cos^2(\theta_1-\theta_2)}} \\
+		&+\frac{- (m_1+m_2) r_1 \dot{\theta}_1^2 \sin(\theta_1-\theta_2) - (m_1+m_2) g \sin\theta_2}{\frac{r_2}{r_1} \bb{(m_1+m_2)r_1 - m_2r_1\cos^2(\theta_1-\theta_2)}}
+	\end{align*}
+	Next we use the fourth order Runge-Kutta method for advancing in time. Let $ \dot{y}=f(y, t) $, then
+	\begin{align}
+		y(t + \Delta t) &= y(t) + \frac{1}{6} (k_1 + 2k_2 + 2k_3 + k_4), \\
+		k_1 &= \Delta t \ f(y(t), t),\\
+		k_2 &= \Delta t \ f(y(t) + k_1/2, t+\Delta t/2), \\
+		k_3 &= \Delta t \ f(y(t) + k_2/2, t+\Delta t/2), \\
+		k_4 &= \Delta t \ f(y(t) + k_3, t+\Delta t).
+	\end{align}
 \end{document}
