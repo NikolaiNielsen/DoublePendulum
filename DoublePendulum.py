@@ -230,11 +230,11 @@ class Animator(object):
         dt = T[1] - T[0]
         self.N_p = int(1/dt)*5
         N = T.size
-        self.pot1 = np.hstack(([np.nan]*self.N_p, pot1))
-        self.pot2 = np.hstack(([np.nan]*self.N_p, pot2))
-        self.kin1 = np.hstack(([np.nan]*self.N_p, kin1))
-        self.kin2 = np.hstack(([np.nan]*self.N_p, kin2))
-        self.tot = np.hstack(([np.nan]*self.N_p, tot))
+        self.pot1 = np.hstack(([np.nan]*self.N_p, pot1, [np.nan]*self.N_p))
+        self.pot2 = np.hstack(([np.nan]*self.N_p, pot2, [np.nan]*self.N_p))
+        self.kin1 = np.hstack(([np.nan]*self.N_p, kin1, [np.nan]*self.N_p))
+        self.kin2 = np.hstack(([np.nan]*self.N_p, kin2, [np.nan]*self.N_p))
+        self.tot = np.hstack(([np.nan]*self.N_p, tot, [np.nan]*self.N_p))
         self.e_dummy = np.linspace(-1, 1, 2*self.N_p)
         self.pot1_plot, = self.ax2.plot(self.e_dummy, self.pot1[0:2*self.N_p],
                                         label='Pot1')
