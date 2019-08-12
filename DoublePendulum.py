@@ -202,6 +202,8 @@ def animation_window():
     ax2.set_yticks([])
     ax1.set_xlim(-1, 1)
     ax1.set_ylim(-1, 1)
+    ax2.set_xlim(-1, 1)
+    ax2.axvline(x=0, color='k', linestyle='--')
     return fig, ax1, ax2
 
 
@@ -224,25 +226,38 @@ class Animator(object):
         self.ydata = np.array((naught, y1, y2)).T
         self.time = T
         self.time_text = self.ax.text(-0.9, 0.9, 'Time: 0')
-        self.pot1 = pot1
-        self.pot2 = pot2
-        self.kin1 = kin1
-        self.kin2 = kin2
 
-        self.total_energy = tot
-        self.pot1_plot = self.ax2.plot(self.pot1, label='Pot1')
-        self.pot2_plot = self.ax2.plot(self.pot2, label='Pot2')
-        self.kin1_plot = self.ax2.plot(self.kin1, label='Kin1')
-        self.kin2_plot = self.ax2.plot(self.kin2, label='Kin2')
-        self.total_plot = self.ax2.plot(self.total_energy, label='total')
+        dt = T[1] - T[0]
+        self.N_p = int(1/dt)*5
+        N = T.size
+        self.pot1 = np.hstack(([np.nan]*self.N_p, pot1))
+        self.pot2 = np.hstack(([np.nan]*self.N_p, pot2))
+        self.kin1 = np.hstack(([np.nan]*self.N_p, kin1))
+        self.kin2 = np.hstack(([np.nan]*self.N_p, kin2))
+        self.tot = np.hstack(([np.nan]*self.N_p, tot))
+        self.e_dummy = np.linspace(-1, 1, 2*self.N_p)
+        self.pot1_plot, = self.ax2.plot(self.e_dummy, self.pot1[0:2*self.N_p],
+                                        label='Pot1')
+        self.pot2_plot, = self.ax2.plot(self.e_dummy, self.pot2[0:2*self.N_p],
+                                        label='Pot2')
+        self.kin1_plot, = self.ax2.plot(self.e_dummy, self.kin1[0:2*self.N_p],
+                                        label='Kin1')
+        self.kin2_plot, = self.ax2.plot(self.e_dummy, self.kin2[0:2*self.N_p],
+                                        label='Kin2')
+        self.total_plot, = self.ax2.plot(self.e_dummy, self.tot[0:2*self.N_p],
+                                         label='total')
         self.energy_label = self.ax2.legend()
 
-        self.artists = [self.plot, self.time_text]
+        self.artists = [self.plot, self.pot1_plot, self.pot2_plot,
+                        self.kin1_plot, self.kin2_plot, self.total_plot,
+                        self.time_text]
 
     def _init(self):
         # function to clear the line every time it is plotted (init function
         # for FuncAnim)
-        self.plot.set_data([], [])
+        for i in self.artists[:-1]:
+
+            i.set_data([], [])
         self.ax.set_xlim(-1, 1)
         self.ax.set_ylim(-1, 1)
         self.ax.set_aspect('equal')
@@ -251,6 +266,11 @@ class Animator(object):
     def __call__(self, i):
         self.time_text.set_text(f'Time: {self.time[i]:.2f}')
         self.plot.set_data(self.xdata[i], self.ydata[i])
+        self.pot1_plot.set_data(self.e_dummy, self.pot1[i:i+2*self.N_p])
+        self.pot2_plot.set_data(self.e_dummy, self.pot2[i:i+2*self.N_p])
+        self.kin1_plot.set_data(self.e_dummy, self.kin1[i:i+2*self.N_p])
+        self.kin2_plot.set_data(self.e_dummy, self.kin2[i:i+2*self.N_p])
+        self.total_plot.set_data(self.e_dummy, self.tot[i:i+2*self.N_p])
         return self.artists
 
 

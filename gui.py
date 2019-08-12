@@ -140,7 +140,7 @@ class double_pendulum_window(QW.QMainWindow):
         # Initialize the animation class
         r1, m1, m2, g = self.current_values
         r2 = 1-r1
-        N = 2001
+        N = 6001
         dt = 0.005
         self.cid = self.canvas.mpl_connect('button_press_event',
                                            lambda event: dp._on_mouse(
