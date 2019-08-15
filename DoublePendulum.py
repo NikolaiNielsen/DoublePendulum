@@ -294,7 +294,7 @@ def _on_mouse(event, r1, r2, ax, ax2, fig, N, dt, m1, m2, g):
 
     ani = animation.FuncAnimation(fig, A, frames=N,
                                   init_func=A._init,
-                                  save_count=100,
+                                  save_count=500,
                                   blit=True,
                                   interval=dt*1000,
                                   repeat=False)
